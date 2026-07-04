@@ -1,0 +1,298 @@
+// This is your Prisma schema file for NovaHR
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Enums ----
+
+enum Role {
+  EMPLOYEE
+  MANAGER
+  ADMIN
+  HR
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LEAVE
+}
+
+enum LeaveType {
+  PAID
+  SICK
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  LEAVE_STATUS
+  ANOMALY
+  KUDOS
+  SYSTEM
+}
+
+// ---- Models ----
+
+model Department {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  employees Employee[]
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@map("departments")
+}
+
+model Employee {
+  id            String   @id @default(uuid())
+  employeeCode  String   @unique @map("employee_code")
+  name          String
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  role          Role     @default(EMPLOYEE)
+  departmentId  String?  @map("department_id")
+  managerId     String?  @map("manager_id")
+  phone         String?
+  address       String?
+  photoUrl      String?  @map("photo_url")
+  status        String   @default("active")
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  department     Department?      @relation(fields: [departmentId], references: [id])
+  manager        Employee?        @relation("ManagerReports", fields: [managerId], references: [id])
+  directReports  Employee[]       @relation("ManagerReports")
+  attendance     Attendance[]
+  leaveRequests  LeaveRequest[]   @relation("EmployeeLeaves")
+  approvedLeaves LeaveRequest[]   @relation("ApproverLeaves")
+  leaveBalances  LeaveBalance[]
+  payroll        Payroll[]        @relation("EmployeePayroll")
+  payrollUpdates Payroll[]        @relation("PayrollUpdatedBy")
+  documents      Document[]       @relation("EmployeeDocuments")
+  verifiedDocs   Document[]       @relation("DocumentVerifiedBy")
+  skills         Skill[]
+  kudosGiven     Kudos[]          @relation("KudosFrom")
+  kudosReceived  Kudos[]          @relation("KudosTo")
+  wellnessScores WellnessScore[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+  sessions       Session[]
+  copilotSessions CopilotSession[]
+
+  @@map("employees")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  employeeId   String   @map("employee_id")
+  refreshToken String   @unique @map("refresh_token")
+  userAgent    String?  @map("user_agent")
+  ipAddress    String?  @map("ip_address")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model EmailToken {
+  id         String   @id @default(uuid())
+  email      String
+  token      String   @unique
+  type       String   // 'verification' | 'password_reset'
+  expiresAt  DateTime @map("expires_at")
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("email_tokens")
+}
+
+model Attendance {
+  id            String           @id @default(uuid())
+  employeeId    String           @map("employee_id")
+  date          DateTime         @db.Date
+  checkInTime   DateTime?        @map("check_in_time")
+  checkOutTime  DateTime?        @map("check_out_time")
+  status        AttendanceStatus @default(PRESENT)
+  geoFlag       Boolean          @default(false) @map("geo_flag")
+  anomalyFlag   Boolean          @default(false) @map("anomaly_flag")
+  anomalyReason String?          @map("anomaly_reason")
+  reviewed      Boolean          @default(false)
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@map("attendance")
+}
+
+model LeaveRequest {
+  id              String      @id @default(uuid())
+  employeeId      String      @map("employee_id")
+  leaveType       LeaveType   @map("leave_type")
+  startDate       DateTime    @map("start_date") @db.Date
+  endDate         DateTime    @map("end_date") @db.Date
+  remarks         String?
+  status          LeaveStatus @default(PENDING)
+  approverId      String?     @map("approver_id")
+  approverComment String?     @map("approver_comment")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  employee Employee  @relation("EmployeeLeaves", fields: [employeeId], references: [id], onDelete: Cascade)
+  approver Employee? @relation("ApproverLeaves", fields: [approverId], references: [id])
+
+  @@map("leave_requests")
+}
+
+model LeaveBalance {
+  id         String    @id @default(uuid())
+  employeeId String    @map("employee_id")
+  leaveType  LeaveType @map("leave_type")
+  allotted   Int
+  used       Int       @default(0)
+  year       Int
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, leaveType, year])
+  @@map("leave_balances")
+}
+
+model Payroll {
+  id             String   @id @default(uuid())
+  employeeId     String   @map("employee_id")
+  baseSalary     Decimal  @map("base_salary") @db.Decimal(12, 2)
+  allowancesJson Json     @default("{}") @map("allowances_json")
+  deductionsJson Json     @default("{}") @map("deductions_json")
+  effectiveMonth String   @map("effective_month") // Format: "2026-07"
+  updatedById    String?  @map("updated_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  employee  Employee  @relation("EmployeePayroll", fields: [employeeId], references: [id], onDelete: Cascade)
+  updatedBy Employee? @relation("PayrollUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([employeeId, effectiveMonth])
+  @@map("payroll")
+}
+
+model Document {
+  id               String   @id @default(uuid())
+  employeeId       String   @map("employee_id")
+  docType          String   @map("doc_type")
+  fileUrl          String   @map("file_url")
+  ocrExtractedJson Json?    @map("ocr_extracted_json")
+  verifiedById     String?  @map("verified_by")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  employee   Employee  @relation("EmployeeDocuments", fields: [employeeId], references: [id], onDelete: Cascade)
+  verifiedBy Employee? @relation("DocumentVerifiedBy", fields: [verifiedById], references: [id])
+
+  @@map("documents")
+}
+
+model Skill {
+  id          String @id @default(uuid())
+  employeeId  String @map("employee_id")
+  skillName   String @map("skill_name")
+  proficiency String // beginner, intermediate, advanced, expert
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, skillName])
+  @@map("skills")
+}
+
+model Kudos {
+  id             String   @id @default(uuid())
+  fromEmployeeId String   @map("from_employee_id")
+  toEmployeeId   String   @map("to_employee_id")
+  message        String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  fromEmployee Employee @relation("KudosFrom", fields: [fromEmployeeId], references: [id], onDelete: Cascade)
+  toEmployee   Employee @relation("KudosTo", fields: [toEmployeeId], references: [id], onDelete: Cascade)
+
+  @@map("kudos")
+}
+
+model WellnessScore {
+  id          String   @id @default(uuid())
+  employeeId  String   @map("employee_id")
+  score       Decimal  @db.Decimal(4, 2)
+  factorsJson Json     @map("factors_json")
+  computedAt  DateTime @default(now()) @map("computed_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("wellness_scores")
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  employeeId String           @map("employee_id")
+  title      String
+  message    String
+  type       NotificationType
+  read       Boolean          @default(false)
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String   @map("actor_id")
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  beforeJson Json?   @map("before_json")
+  afterJson  Json?   @map("after_json")
+  timestamp DateTime @default(now())
+
+  actor Employee @relation(fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model CopilotSession {
+  id         String           @id @default(uuid())
+  employeeId String           @map("employee_id")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  messages   CopilotMessage[]
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("copilot_sessions")
+}
+
+model CopilotMessage {
+  id          String   @id @default(uuid())
+  sessionId   String   @map("session_id")
+  role        String   // 'user' | 'assistant'
+  content     String
+  sourcesJson Json?    @map("sources_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  session CopilotSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("copilot_messages")
+}

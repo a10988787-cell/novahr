@@ -1,0 +1,246 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-on-surface font-body-md transition-colors duration-200;
+}
+
+/* Tonal layer components */
+.tonal-layer-1 {
+  @apply bg-surface-container-lowest border border-outline-variant rounded-lg;
+}
+
+.tonal-layer-2 {
+  @apply bg-surface border border-outline-variant rounded-lg shadow-tonal-1;
+}
+
+.tonal-layer-3 {
+  @apply bg-surface border border-outline-variant rounded-lg shadow-tonal-2;
+}
+
+/* Elevation shadows */
+.elevation-1 {
+  @apply shadow-tonal-1;
+}
+
+.elevation-2 {
+  @apply shadow-tonal-2;
+}
+
+/* Typography utilities */
+.text-display {
+  @apply font-display text-display;
+}
+
+.text-headline-lg {
+  @apply font-headline-lg text-headline-lg;
+}
+
+.text-headline-md {
+  @apply font-headline-md text-headline-md;
+}
+
+.text-headline-sm {
+  @apply font-headline-sm text-headline-sm;
+}
+
+.text-body-lg {
+  @apply font-body-lg text-body-lg;
+}
+
+.text-body-md {
+  @apply font-body-md text-body-md;
+}
+
+.text-body-sm {
+  @apply font-body-sm text-body-sm;
+}
+
+.text-label-md {
+  @apply font-label-md text-label-md;
+}
+
+.text-label-sm {
+  @apply font-label-sm text-label-sm;
+}
+
+/* Button utilities */
+.btn-primary {
+  @apply bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md px-lg py-md rounded-lg transition-colors disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply bg-surface-container border border-outline-variant text-on-surface font-label-md text-label-md px-lg py-md rounded-lg hover:bg-surface-container-high transition-colors;
+}
+
+.btn-ghost {
+  @apply text-on-surface-variant hover:text-on-surface font-label-md text-label-md px-lg py-md transition-colors;
+}
+
+/* Input utilities */
+.input-field {
+  @apply w-full px-md py-md border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary;
+}
+
+.dark .input-field {
+  @apply bg-[#111520] dark:border-[#2D3748] dark:text-white;
+}
+
+/* Card utilities */
+.card {
+  @apply bg-surface-container-lowest border border-outline-variant rounded-lg p-lg;
+}
+
+.card-lg {
+  @apply bg-surface-container-lowest border border-outline-variant rounded-xl p-2xl;
+}
+
+/* Badge utilities */
+.badge {
+  @apply inline-flex items-center px-md py-xs rounded-full text-label-sm font-label-md;
+}
+
+.badge-primary {
+  @apply bg-primary-container text-on-primary-container;
+}
+
+.badge-secondary {
+  @apply bg-secondary-container text-on-secondary-container;
+}
+
+.badge-error {
+  @apply bg-error-container text-on-error-container;
+}
+
+.badge-success {
+  @apply bg-secondary-container text-on-secondary-container;
+}
+
+/* Sidebar navigation */
+.nav-item {
+  @apply flex items-center gap-sm px-md py-md rounded-lg transition-colors duration-200;
+}
+
+.nav-item-active {
+  @apply bg-secondary-container text-on-secondary-container;
+}
+
+.nav-item-inactive {
+  @apply text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface;
+}
+
+/* Data table utilities */
+.table-header {
+  @apply bg-surface-container sticky top-0 text-on-surface-variant uppercase text-label-sm font-label-md px-md py-lg border-b border-outline-variant;
+}
+
+.table-cell {
+  @apply px-md py-md text-body-sm text-on-surface border-b border-outline-variant/50;
+}
+
+.table-row-hover:hover {
+  @apply bg-surface-container-low transition-colors;
+}
+
+/* Form utilities */
+.form-group {
+  @apply space-y-xs;
+}
+
+.form-label {
+  @apply block text-label-md text-on-surface font-label-md uppercase tracking-wider;
+}
+
+.form-helper {
+  @apply text-label-sm text-on-surface-variant mt-xs;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-surface-container-lowest;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-outline-variant rounded-full hover:bg-outline;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    @apply opacity-0 translate-y-4;
+  }
+  to {
+    @apply opacity-100 translate-y-0;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    @apply opacity-0 translate-x-4;
+  }
+  to {
+    @apply opacity-100 translate-x-0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Utility classes */
+.glass-card {
+  @apply backdrop-blur-md bg-white/10 dark:bg-white/5;
+}
+
+.gradient-primary {
+  @apply bg-gradient-to-br from-primary to-primary-container;
+}
+
+.gradient-secondary {
+  @apply bg-gradient-to-br from-secondary to-secondary-container;
+}
+
+.text-truncate-lines-2 {
+  @apply line-clamp-2;
+}
+
+.text-truncate-lines-3 {
+  @apply line-clamp-3;
+}
+
+/* Dark mode overrides */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  @apply bg-[#111520] text-on-surface;
+}
+
+.dark .bg-background {
+  @apply bg-[#111520];
+}
+
+.dark .bg-surface-container-lowest {
+  @apply bg-[#1E2433];
+}
+
+.dark .bg-surface {
+  @apply bg-[#2D3748];
+}

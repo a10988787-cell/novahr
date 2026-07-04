@@ -1,0 +1,78 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE directories
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+.editorconfig
+
+# TypeScript build cache
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Prisma generated
+# (We keep the schema but not the generated client - it's generated on deploy)
+apps/api/node_modules/.prisma/
+
+# Python (ai-service - now removed but keeping for safety)
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+venv/
+.venv/
+.python-version
+
+# Turbo
+.turbo/
+
+# Vercel
+.vercel/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Test artifacts
+*.snap
+junit.xml
+
+# pnpm lock (checked in at monorepo root only)
+apps/web/pnpm-lock.yaml
+apps/api/pnpm-lock.yaml
+packages/shared-types/pnpm-lock.yaml
